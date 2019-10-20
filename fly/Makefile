@@ -133,12 +133,24 @@ results/assemblies/%.abyss.contigs.fa: %.1.fq.gz %.2.fq.gz
 results/assemblies/%.abyss.contigs.gfa: results/assemblies/%.abyss.contigs.fa
 	ln -sf ../../working/$*.abyss/assembly-contigs.gfa $@
 	ln -sf ../../working/$*.abyss/assembly-scaffolds.gfa results/assemblies/$*.abyss.scaffolds.gfa
+	
+# Assembled linked-reads using abyss.
+results/assemblies/%.abyss_lr.contigs.fa: %.1.fq.gz %.2.fq.gz
+	mkdir -p working/$*.abyss
+	abyss-pe np=$t name=assembly graph=gfa k=112 lr='../../$*.1.fq.gz ../../$*.2.fq.gz' -C working/$*.abyss_lr 1> working/$*.abyss_lr.log 2>&1
+	mkdir -p results/assemblies
+	seqtk seq working/$*.abyss_lr/assembly-contigs.fa > $@
+	seqtk seq working/$*.abyss_lr/assembly-scaffolds.fa > results/assemblies/$*.abyss_lr.scaffolds.fa
+	
+results/assemblies/%.abyss_lr.contigs.gfa: results/assemblies/%.abyss_lr.contigs.fa
+	ln -sf ../../working/$*.abyss_lr/assembly-contigs.gfa $@
+	ln -sf ../../working/$*.abyss_lr/assembly-scaffolds.gfa results/assemblies/$*.abyss_lr.scaffolds.gfa
 
 ################################################################################
 # quast
 results/quast/quast-%/report.txt: results/assemblies/%.abyss.contigs.fa results/assemblies/%.spades.contigs.fa results/assemblies/%.unicycler.fa
 	mkdir -p results/quast/quast-$*
-	quast.py --eukaryote -t $t -o results/quast/quast-$* -r flychr4.fa -l abyss-contig,spades-contigs,abyss,spades,unicycler results/assemblies/$*.abyss.contigs.fa results/assemblies/$*.spades.contigs.fa results/assemblies/$*.abyss.scaffolds.fa results/assemblies/$*.spades.scaffolds.fa results/assemblies/$*.unicycler.fa
+	quast.py --eukaryote -t $t -o results/quast/quast-$* -r flychr4.fa -l abyss-contig,abyss_lr-contig,spades-contigs,abyss,abyss_lr,spades,unicycler results/assemblies/$*.abyss.contigs.fa results/assemblies/$*.abyss_lr.contigs.fa results/assemblies/$*.spades.contigs.fa results/assemblies/$*.abyss.scaffolds.fa results/assemblies/$*.abyss_lr.scaffolds.fa results/assemblies/$*.spades.scaffolds.fa results/assemblies/$*.unicycler.fa
 
 ################################################################################
 # minimap2
